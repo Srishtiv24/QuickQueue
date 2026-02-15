@@ -11,6 +11,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use("/",(req,res)=>{
+  res.send("backend working");
+})
 app.use("/api/v1/appointments", require("./routes/appointmentRoutes"));
 app.use("/api/v1/departments", require("./routes/departmentRoutes"));
 
