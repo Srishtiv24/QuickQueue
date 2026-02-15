@@ -1,0 +1,107 @@
+const Appointment = require("../models/Appointment");
+const Department = require("../models/Department");
+const getPredictedWaitTime = require("../services/mlService");
+
+exports.bookAppointment = async (req, res) => {
+  try {
+    const { department_code, priority = false, travel_time = 0 } = req.body;
+
+    const now = new Date();
+
+    const department = await Department.findOne({ department_code });
+    if (!department)
+      return res.status(404).json({ error: "Department not found" });
+
+    const queueCount = await Appointment.countDocuments({
+      department_code,
+      status: "waiting",
+    });
+
+    const priorityCountAhead = await Appointment.countDocuments({
+      department_code,
+      status: "waiting",
+      priority: true,
+    });
+
+    const queuePosition = queueCount + 1;
+
+    const mlPayload = {
+      queue_position_at_booking: queuePosition,
+      department_code,
+      hour_of_day: now.getHours(),
+      day_of_week: now.getDay(),
+      avg_service_time_ward: department.avg_service_time_ward,
+      priority_count_ahead: priorityCountAhead,
+    };
+
+    let predictedWait = await getPredictedWaitTime(mlPayload);
+
+    if (!predictedWait) {
+      predictedWait = queuePosition * department.avg_service_time_ward;
+    }
+
+    const buffer = 5;
+    const leaveTime = new Date(
+      now.getTime() + (predictedWait - travel_time - buffer) * 60000
+    );
+
+    const appointment = await Appointment.create({
+      department: department.department_name,
+      department_code,
+      queue_position_at_booking: queuePosition,
+      priority,
+      priority_count_ahead: priorityCountAhead,
+      predicted_wait_time_min: predictedWait,
+    });
+
+    res.status(201).json({
+      appointment,
+      predicted_wait_time: predictedWait,
+      recommended_leave_time: leaveTime,
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: "Booking failed" });
+  }
+};
+
+exports.getAllAppointments = async (req, res) => {
+  const appointments = await Appointment.find().sort({ booking_time: -1 });
+  res.json(appointments);
+};
+
+exports.getByDepartment = async (req, res) => {
+  const appointments = await Appointment.find({
+    department_code: req.params.code,
+  });
+  res.json(appointments);
+};
+
+exports.updateStatus = async (req, res) => {
+  const { status } = req.body;
+
+  const appointment = await Appointment.findByIdAndUpdate(
+    req.params.id,
+    { status },
+    { new: true }
+  );
+
+  res.json(appointment);
+};
+
+exports.completeAppointment = async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id);
+
+  if (!appointment)
+    return res.status(404).json({ error: "Not found" });
+
+  appointment.status = "completed";
+  appointment.service_end_time = new Date();
+
+  await appointment.save();
+
+  res.json({
+    message: "Appointment completed",
+    appointment,
+  });
+};
