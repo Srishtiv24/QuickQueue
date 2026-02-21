@@ -7,5 +7,7 @@ router.get("/", controller.getAllAppointments);
 router.get("/department/:code", controller.getByDepartment);
 router.patch("/:id/status", controller.updateStatus);
 router.patch("/:id/complete", controller.completeAppointment);
+router.patch("/next/:department_code", controller.callNextPatient);
+router.get("/queue-position/:id", controller.getLiveQueuePosition);
 
 module.exports = router;

@@ -32,7 +32,7 @@ const appointmentSchema = new mongoose.Schema({
   service_end_time: Date,
   status: {
     type: String,
-    enum: ["waiting", "in_progress", "completed"],
+    enum: ["waiting", "in-progress", "completed"],
     default: "waiting",
   },
 });
