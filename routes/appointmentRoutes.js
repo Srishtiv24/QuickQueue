@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/appointmentController");
 
-router.post("/book", controller.bookAppointment);
+router.post("/book", controller.bookAppointment);//user
 router.get("/", controller.getAllAppointments);
 router.get("/department/:code", controller.getByDepartment);
 router.patch("/:id/status", controller.updateStatus);
