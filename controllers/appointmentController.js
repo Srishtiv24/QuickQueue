@@ -105,6 +105,7 @@ exports.completeAppointment = async (req, res) => {
     appointment,
   });
 };
+
 exports.callNextPatient = async (req, res) => {
   try {
     const { department_code } = req.params;
@@ -158,5 +159,45 @@ exports.getLiveQueuePosition = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to calculate queue position" });
+  }
+};
+
+exports.getAppointmentById = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+
+    const now = new Date();
+
+    // Recalculate leave time (same logic as booking)
+    const travelTime = req.query.travel_time || 0; // optional from frontend
+    const buffer = 5;
+
+    let recommendedLeaveTime = null;
+
+    if (appointment.predicted_wait_time_min) {
+      recommendedLeaveTime = new Date(
+        appointment.booking_time.getTime() +
+          (appointment.predicted_wait_time_min - travelTime - buffer) * 60000
+      );
+    }
+
+    res.json({
+      _id: appointment._id,
+      department: appointment.department,
+      queue_position_at_booking: appointment.queue_position_at_booking,
+      predicted_wait_time_min: appointment.predicted_wait_time_min,
+      status: appointment.status,
+      booking_time: appointment.booking_time,
+      recommended_leave_time: recommendedLeaveTime,
+      service_start_time: appointment.service_start_time || null,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch appointment" });
   }
 };
