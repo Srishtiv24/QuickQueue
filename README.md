@@ -117,25 +117,4 @@ Notification Service (Push / SMS - optional)
 
 ### 🔄 Real-Time
 
-* Socket.io (preferred) or Firebase
-
----
-
-## 📁 Project Structure
-quick-queue/
-│
-├── client/                # Frontend (React)
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   └── utils/
-│
-├── server/                # Backend (Node.js)
-│   ├── controllers/
-│   ├── routes/
-│   ├── models/
-│   ├── middleware/
-│   └── config/
-│
-├── README.md
-└── package.json
+* Socket.io 
