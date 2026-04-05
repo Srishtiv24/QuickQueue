@@ -3,9 +3,6 @@
 ## 🚀 Overview
 
 **Quick Queue** is a full-stack application designed to digitize hospital queues and reduce patient waiting time. It enables patients to join a department queue remotely, track their position in real time, and arrive only when their turn is near.
-
-👉 This project models a **single-hospital system** using a **department-based queue** (no doctor selection), reflecting real-world OPD workflows.
-
 ---
 
 ## 💡 Problem Statement
